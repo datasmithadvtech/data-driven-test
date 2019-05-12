@@ -19,12 +19,18 @@ public class GstCalculatorTest {
         ArrayList<DataRow> dataRows = readRow();
         for(int i = 0; i< dataRows.size(); i++){
             DataRow dataRow = dataRows.get(i);
-            try {
+            if (dataRow.expectedTax < 0){
+                try {
+                    new GstCalculator().calculate(dataRow.hsn, dataRow.amount).doubleValue();
+                }
+                catch (GstCalculator.HsnCodeNotFoundException e){
+                    Assert.assertTrue(e.getMessage().equals("HSN Code "+dataRow.hsn+" is not a valid HSN Code"));
+                }
+            }
+            else {
                 Assert.assertTrue(new GstCalculator().calculate(dataRow.hsn, dataRow.amount).doubleValue() == dataRow.expectedTax.doubleValue());
             }
-            catch (GstCalculator.HsnCodeNotFoundException e){
-                Assert.assertTrue(e.getMessage().equals("HSN Code "+dataRow.hsn+" is not a valid HSN Code"));
-            }
+
         }
     }
 
@@ -41,7 +47,7 @@ public class GstCalculatorTest {
             Iterator<Cell> cellIterator = row.cellIterator();
             DataRow dataRow = new DataRow();
             dataRow.id = (int)cellIterator.next().getNumericCellValue();
-            dataRow.hsn = "0"+cellIterator.next().getNumericCellValue();
+            dataRow.hsn = "0"+((int)cellIterator.next().getNumericCellValue());
             dataRow.amount = cellIterator.next().getNumericCellValue();
             Cell cell = cellIterator.next();
             if (cell.getCellType() == CellType.STRING){
